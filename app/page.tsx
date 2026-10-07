@@ -34,41 +34,57 @@ function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: string;
   );
 }
 
+function CircleCheck() {
+  return (
+    <svg viewBox="0 0 20 20" className="size-4 shrink-0 text-success" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="8.25" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.5 10.3l2.3 2.3 4.7-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function PlanCard({ plan }: { plan: Plan }) {
-  const isContact = plan.name === "Enterprise";
+  const items = [plan.credits, ...(plan.multiplier ? [`${plan.multiplier} Street Cred multiplier`] : []), ...plan.features];
   return (
     <div
-      className={`flex flex-col rounded-xl border bg-white p-6 transition duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
-        plan.highlight ? "border-primary ring-1 ring-primary shadow-md" : "border-outline"
+      className={`flex flex-col rounded-xl border p-6 transition duration-150 hover:-translate-y-0.5 hover:shadow-lg ${
+        plan.highlight
+          ? "border-primary-30 bg-linear-to-b from-primary-20 to-white"
+          : "border-outline bg-white"
       }`}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-neutral-100">{plan.name}</h3>
-        {plan.highlight && (
-          <span className="rounded-full bg-primary-20 px-2.5 py-0.5 text-xs font-semibold text-primary">Popular</span>
-        )}
-      </div>
-      <p className="mt-1 min-h-10 text-sm text-muted">{plan.audience}</p>
-      <p className="mt-5 text-3xl font-bold text-neutral-100">
+      <h3 className={`text-base font-bold ${plan.highlight ? "text-primary" : "text-neutral-100"}`}>{plan.name}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{plan.audience}</p>
+      <p className="mt-6 text-3xl font-bold text-neutral-100">
         {plan.price}
         {plan.period && <span className="ml-1 text-sm font-medium text-muted">{plan.period}</span>}
       </p>
-      <p className="mt-1 text-sm font-semibold text-primary">{plan.credits}</p>
-      {plan.multiplier && (
-        <p className="mt-1 text-xs text-muted">Street Cred multiplier: <span className="font-semibold text-ink">{plan.multiplier}</span></p>
-      )}
-      <ul className="mt-5 flex-1 space-y-2.5 text-sm text-ink">
-        {plan.features.map((f) => (
-          <li key={f} className="flex gap-2">
-            <Check />
+      <a
+        href={SIGN_UP_URL}
+        className={`${plan.highlight ? btnPrimary : `${btn} border border-primary bg-primary-20 text-primary hover:bg-primary-30`} mt-5 w-full`}
+      >
+        {plan.cta}
+      </a>
+      <ul className="mt-6 space-y-3 text-sm text-ink">
+        {items.map((f) => (
+          <li key={f} className="flex items-center gap-2.5">
+            <CircleCheck />
             {f}
           </li>
         ))}
       </ul>
-      <a
-        href={isContact ? `mailto:${SUPPORT_EMAIL}?subject=STG%20Enterprise` : SIGN_UP_URL}
-        className={`${plan.highlight ? btnPrimary : btnGhost} mt-6`}
-      >
+    </div>
+  );
+}
+
+function EnterpriseBar({ plan }: { plan: Plan }) {
+  return (
+    <div className="mt-5 flex flex-col gap-5 rounded-xl border border-outline bg-linear-to-b from-primary-20 to-white p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h3 className="text-base font-bold text-primary">{plan.name}</h3>
+        <p className="mt-1 text-sm text-muted">{plan.audience}. Custom credits and workflows for agencies and firms.</p>
+      </div>
+      <a href={`mailto:${SUPPORT_EMAIL}?subject=STG%20Enterprise`} className={`${btnPrimary} sm:shrink-0`}>
         {plan.cta}
       </a>
     </div>
@@ -100,14 +116,14 @@ export default function Home() {
             <a href={SIGN_IN_URL} className="hidden px-3 py-2 text-sm font-semibold text-primary hover:text-primary-hover sm:inline">
               Sign in
             </a>
-            <a href={SIGN_UP_URL} className={`${btnPrimary} !py-2`}>Get started</a>
+            <a href={SIGN_UP_URL} className={`${btnPrimary} py-2!`}>Get started</a>
           </div>
         </div>
       </header>
 
       <main id="top">
         {/* Hero */}
-        <section className="bg-gradient-to-b from-primary-10 to-white">
+        <section className="bg-linear-to-b from-primary-10 to-white">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
             <div>
               <span className="inline-block rounded-full bg-primary-20 px-3 py-1 text-xs font-semibold text-primary">
@@ -250,17 +266,20 @@ export default function Home() {
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <section id="pricing" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <SectionHead
             eyebrow="Membership"
             title="Plans that scale with your work"
             body="Start free and upgrade when you need more monthly credits. Prices are in USD, billed monthly."
           />
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {plans.map((p) => (
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {plans.filter((p) => p.name !== "Enterprise").map((p) => (
               <PlanCard key={p.name} plan={p} />
             ))}
           </div>
+          {plans.filter((p) => p.name === "Enterprise").map((p) => (
+            <EnterpriseBar key={p.name} plan={p} />
+          ))}
         </section>
 
         {/* Disclaimer */}
